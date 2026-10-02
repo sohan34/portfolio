@@ -9,12 +9,9 @@
     default-src 'self';
     script-src 'self' https://cdnjs.cloudflare.com;
     style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;
-    font-src https://fonts.gstatic.com;    
-    connect-src 'self'
-      https://leetcode-stats.tashif.codes
-      https://gfg-stats.tashif.codes;
-    img-src 'self' data:
-      https://ghchart.rshah.org;
+    font-src https://fonts.gstatic.com;
+    img-src 'self' data: https:;
+    connect-src https://api.github.com https://alfa-leetcode-api.onrender.com https://github-contributions-api.jogruber.de;
     object-src 'none';
     frame-ancestors 'none';
     base-uri 'self';
@@ -102,7 +99,7 @@
         <span>Degree:</span> <strong>B.E. Computer Engineering</strong>
       </div>
       <div class="about-line glass-panel">
-        <span>CGPA:</span> <strong>8.91</strong>
+        <span>CGPA:</span> <strong>9.02</strong>
       </div>
       <div class="about-line glass-panel">
         <span>Passout Year:</span> <strong>2026</strong>
@@ -113,57 +110,101 @@
     </div>
   </section>
 
-  
-<!-- Coding & Cybersecurity Activity -->
-<section id="coding-activity" class="activity-section">
-  <div class="section-heading">
-    <p class="boot">> tracking_progress.exe</p>
-    <h2>Coding & Cybersecurity</h2>
-    <p>My journey in problem solving, open source, and security.</p>
-  </div>
 
-  <div class="activity-grid">
-    <a class="activity-card"
-       href="https://leetcode.com/"
-       target="_blank" rel="noopener noreferrer">
-      <h3>LeetCode</h3>
-      <p id="leetcode-total">Loading stats...</p>
-      <p id="leetcode-breakdown"></p>
-      <a href="https://leetcode.com/u/sohan_34/" target="_blank" rel="noopener noreferrer">
-      View LeetCode profile ↗
+  <!-- Coding & Cybersecurity Activity -->
+  <section id="coding-activity" class="activity-section">
+    <div class="section-heading">
+      <p class="boot">> tracking_progress.exe</p>
+      <h2>Progress Tracking</h2>
+    </div>
+
+    <div class="stat-grid" id="live-stats-container">
+
+      <!-- LeetCode -->
+      <a class="stat-card live-card glass-panel" href="https://leetcode.com/u/sohan_34/" target="_blank"
+        rel="noopener noreferrer">
+        <div class="live-data">
+          <p class="platform-label">LeetCode</p>
+          <div class="lc-wheel-wrap">
+            <svg class="lc-donut" viewBox="0 0 120 120">
+              <circle class="donut-bg" cx="60" cy="60" r="50" />
+              <circle id="lc-easy-arc" class="donut-easy" cx="60" cy="60" r="50" />
+              <circle id="lc-medium-arc" class="donut-medium" cx="60" cy="60" r="50" />
+              <circle id="lc-hard-arc" class="donut-hard" cx="60" cy="60" r="50" />
+              <text x="60" y="55" class="donut-total" id="lc-total">--</text>
+              <text x="60" y="72" class="donut-sub">Solved</text>
+            </svg>
+          </div>
+          <div class="lc-legend">
+            <span class="leg easy">Easy <strong id="lc-easy">--</strong></span>
+            <span class="leg medium">Med <strong id="lc-medium">--</strong></span>
+            <span class="leg hard">Hard <strong id="lc-hard">--</strong></span>
+          </div>
+        </div>
+      </a>
+
+      <!-- GitHub -->
+      <a class="stat-card live-card glass-panel" href="https://github.com/sohan34" target="_blank"
+        rel="noopener noreferrer">
+        <div class="live-data">
+          <p class="platform-label">GitHub</p>
+          <h2 id="gh-repos" class="big-stat gradient-text">--</h2>
+          <p class="stat-desc">Public Repos</p>
+          <div class="gh-row">
+            
+<div class="gh-row">
+  <div class="gh-mini">
+    <span class="gh-val" id="gh-contributions">--</span>
+    <span class="gh-key">Contributions (last year)</span>
+  </div>
+</div>
+
+          </div>
+        </div>
+      </a>
+
+      <!-- TryHackMe -->
+      
+<a class="stat-card live-card glass-panel thm-card"
+   href="https://tryhackme.com/p/sohan34"
+   target="_blank"
+   rel="noopener noreferrer">
+
+  <div class="live-data">
+    <p class="platform-label">TryHackMe</p>
+
+    <div class="thm-stats">
+      <div class="thm-stat">
+        <span class="thm-stat-value">21</span>
+        <span class="thm-stat-label">Rooms Completed</span>
+      </div>
+
+      <div class="thm-stat">
+        <span class="thm-stat-value">Top 25%</span>
+        <span class="thm-stat-label">Rank</span>
+      </div>
+
+      <div class="thm-stat">
+        <span class="thm-stat-value">Hidden</span>
+        <span class="thm-stat-label">Exact Rank</span>
+      </div>
+
+      <div class="thm-stat">
+        <span class="thm-stat-value">4</span>
+        <span class="thm-stat-label">Badges</span>
+      </div>
+
+
+
+      
+    </div>
+
+  </div>
 </a>
 
-    </a>
 
-    <a class="activity-card"
-       href="https://www.geeksforgeeks.org/"
-       target="_blank" rel="noopener noreferrer">
-      <h3>GeekforGeeks</h3>
-      <p id="gfg-total">Loading stats...</p>
-      <p id="gfg-score"></p>
-      <a href="https://www.geeksforgeeks.org/profile/sohanchavan34?tab=activity" target="_blank" rel="noopener noreferrer">
-      View GeekforGeeks profile ↗
-    </a>
-
-    <a class="activity-card"
-       href="https://tryhackme.com/"
-       target="_blank" rel="noopener noreferrer">
-      <h3>Tryhackme</h3>
-      <p id="thm-total">Loading stats...</p>
-      <p id="thm-points"></p>
-      <a href="https://tryhackme.com/p/sohan34" target="_blank" rel="noopener noreferrer">
-      View GeekforGeeks profile ↗
-    </a>
-
-    <a class="activity-card"
-       href="https://github.com/sohan34"
-       target="_blank" rel="noopener noreferrer">
-      <h3>GitHub Contributions</h3>
-      <p>Projects, commits & open source</p>
-      <span>View profile ↗</span>
-    </a>
-  </div>
-</section>
+    </div>
+  </section>
 
 
   <!-- SKILLS -->

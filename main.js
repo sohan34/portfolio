@@ -345,89 +345,145 @@ document.addEventListener("keydown", (e) => {
   }
 });
 
+/* =========================================
+   LIVE PLATFORM STATS
+   ========================================= */
 
-async function loadProfileStats() {
-  const profiles = [
-    {
-      url: "https://leetcode-stats.tashif.codes/sohan_34",
-      totalId: "leetcode-total",
-      breakdownId: "leetcode-breakdown",
-      platform: "LeetCode"
-    },
-    {
-      url: "https://gfg-stats.tashif.codes/sohanchavan34",
-      totalId: "gfg-total",
-      breakdownId: "gfg-score",
-      platform: "GFG"
+// TryHackMe image fallback (replaces removed inline onerror)
+(function setupTHMFallback() {
+  const img = document.getElementById("thm-badge-img");
+  const fallback = document.getElementById("thm-fallback");
+  if (!img || !fallback) return;
+  img.addEventListener("error", () => {
+    img.style.display = "none";
+    fallback.style.display = "flex";
+  });
+})();
+
+// Fetch with retry on 429
+async function fetchWithRetry(url, retries = 2, delayMs = 4000) {
+  for (let i = 0; i <= retries; i++) {
+    const res = await fetch(url);
+    if (res.status === 429 && i < retries) {
+      await new Promise(r => setTimeout(r, delayMs));
+      continue;
     }
-  ];
-
-  for (const profile of profiles) {
-    const total = document.getElementById(profile.totalId);
-    const extra = document.getElementById(profile.breakdownId);
-
-    try {
-      const response = await fetch(profile.url);
-
-      if (!response.ok) {
-        throw new Error("Profile service unavailable");
-      }
-
-      const result = await response.json();
-      const data = result.data ?? result;
-
-      if (profile.platform === "LeetCode") {
-        const solved =
-          data.totalSolved ??
-          data.submitStats?.acSubmissionNum?.find(
-            item => item.difficulty === "All"
-          )?.count;
-
-        if (solved == null) throw new Error("Missing stats");
-
-        total.textContent = `${solved} problems solved`;
-
-        if (extra) {
-          const easy = data.easySolved ??
-            data.submitStats?.acSubmissionNum?.find(
-              item => item.difficulty === "Easy"
-            )?.count;
-          const medium = data.mediumSolved ??
-            data.submitStats?.acSubmissionNum?.find(
-              item => item.difficulty === "Medium"
-            )?.count;
-          const hard = data.hardSolved ??
-            data.submitStats?.acSubmissionNum?.find(
-              item => item.difficulty === "Hard"
-            )?.count;
-
-          extra.textContent =
-            [easy, medium, hard].every(n => n != null)
-              ? `Easy ${easy} · Medium ${medium} · Hard ${hard}`
-              : "Difficulty breakdown unavailable";
-        }
-      } else {
-        const solved = data.totalSolved;
-
-        if (solved == null) throw new Error("Missing stats");
-
-        total.textContent = `${solved} problems solved`;
-
-        if (extra) {
-          extra.textContent = data.currentRating != null
-            ? `Coding rating: ${data.currentRating}`
-            : data.score != null
-              ? `Coding score: ${data.score}`
-              : "More stats on profile";
-        }
-      }
-    } catch (error) {
-      total.textContent = "Stats temporarily unavailable";
-      if (extra) extra.textContent = "View the profile for current data.";
-      console.warn(`${profile.platform} stats:`, error);
-    }
+    return res;
   }
 }
 
-loadProfileStats();
+(async function fetchLiveStats() {
+
+  // --- LeetCode (with retry) ---
+  try {
+    const res = await fetchWithRetry("https://alfa-leetcode-api.onrender.com/sohan_34/solved");
+    if (!res || !res.ok) throw new Error("LC API " + res?.status);
+    const d = await res.json();
+    const easy = d.easySolved ?? 0;
+    const medium = d.mediumSolved ?? 0;
+    const hard = d.hardSolved ?? 0;
+    const total = d.solvedProblem ?? (easy + medium + hard);
+
+    countUp(document.getElementById("lc-easy"), easy, 1000);
+    countUp(document.getElementById("lc-medium"), medium, 1000);
+    countUp(document.getElementById("lc-hard"), hard, 1000);
+    countUp(document.getElementById("lc-total"), total, 1200);
+
+    // Donut wheel animation
+    const CIRC = 2 * Math.PI * 50; // r=50 → ~314.16
+    const LC_TOTAL = 3600;
+    const easyFrac = easy / LC_TOTAL;
+    const medFrac = medium / LC_TOTAL;
+    const hardFrac = hard / LC_TOTAL;
+
+    
+function setArc(id, fraction, startAngleDeg) {
+  const el = document.getElementById(id);
+  if (!el) return;
+
+  const dash = Math.max(fraction * CIRC, 0);
+  const offset = -(startAngleDeg / 360) * CIRC;
+
+  el.style.strokeDasharray = `${dash} ${CIRC}`;
+  el.style.strokeDashoffset = `${offset}`;
+}
+
+
+    // Reset all to 0 stroke first
+    ["lc-easy-arc", "lc-medium-arc", "lc-hard-arc"].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) { el.style.strokeDasharray = `0 ${CIRC}`; el.style.strokeDashoffset = "0"; }
+    });
+
+    // Draw after one frame to trigger CSS transition
+    
+requestAnimationFrame(() => {
+  setArc("lc-easy-arc", easyFrac, 0);
+  setArc("lc-medium-arc", medFrac, 60);
+  setArc("lc-hard-arc", hardFrac, 120);
+});
+
+
+  } catch (e) {
+    console.warn("LeetCode stats unavailable:", e.message);
+    // Show dashes (keep -- defaults visible, just shrink loading text)
+    const t = document.getElementById("lc-total");
+    if (t) t.textContent = "--";
+  }
+
+  // --- GitHub ---
+  try {
+    const res = await fetch("https://api.github.com/users/sohan34");
+    if (!res.ok) throw new Error("GH " + res.status);
+    const d = await res.json();
+    
+countUp(document.getElementById("gh-repos"), d.public_repos ?? 0, 900);
+
+try {
+  const response = await fetch(
+    "https://github-contributions-api.jogruber.de/v4/sohan34?y=last"
+  );
+
+  if (!response.ok) {
+    throw new Error(`Contributions API: ${response.status}`);
+  }
+
+  const data = await response.json();
+  const total =
+    data.total?.lastYear ??
+    data.contributions?.reduce(
+      (sum, day) => sum + (Number(day.count) || 0),
+      0
+    );
+
+  if (total == null) throw new Error("Contribution total unavailable");
+
+  countUp(
+    document.getElementById("gh-contributions"),
+    total,
+    900
+  );
+} catch (error) {
+  console.warn("GitHub contributions unavailable:", error);
+  const el = document.getElementById("gh-contributions");
+  if (el) el.textContent = "--";
+}
+
+  } catch (e) {
+    console.warn("GitHub stats unavailable:", e.message);
+  }
+
+})();
+
+function countUp(el, end, duration) {
+  if (!el || end === 0) { if (el) el.textContent = "0"; return; }
+  let startTs = null;
+  const step = (ts) => {
+    if (!startTs) startTs = ts;
+    const p = Math.min((ts - startTs) / duration, 1);
+    el.textContent = Math.floor(p * end);
+    if (p < 1) requestAnimationFrame(step);
+  };
+  requestAnimationFrame(step);
+}
 

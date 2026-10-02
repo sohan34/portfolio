@@ -23,53 +23,24 @@ jobs:
           python -m pip install requests beautifulsoup4
           python - <<'PY'
           
-          import json
-          import os
+          
           import requests
-          from bs4 import BeautifulSoup
           
-          # Use the HTML captured from the public profile.
-          # The live request may still return HTTP 429.
-          url = "https://tryhackme.com/p/sohan34"
+          url = "https://tryhackme.com/api/v2/public-profile?username=sohan34"
           
-          response = requests.get(
-              url,
-              headers={"User-Agent": "Mozilla/5.0"},
-              timeout=30,
-          )
-          response.raise_for_status()
+          try:
+              response = requests.get(
+                  url,
+                  headers={"User-Agent": "Mozilla/5.0"},
+                  timeout=30,
+              )
           
-          soup = BeautifulSoup(response.text, "html.parser")
+              print("HTTP status:", response.status_code)
+              print("Content type:", response.headers.get("content-type"))
+              print("Response body:")
+              print(response.text[:6000])
           
-          def get_stat(label):
-              for box in soup.select('[class*="StyledStatisticBox"]'):
-                  label_el = box.select_one(
-                      '[class*="StyledStatisticsBoxText"]'
-                  )
-                  value_el = box.select_one(
-                      '[class*="StyledStatisticsBoxNumber"]'
-                  )
-          
-                  if (
-                      label_el
-                      and value_el
-                      and label_el.get_text(" ", strip=True).lower()
-                          == label.lower()
-                  ):
-                      return value_el.get_text(" ", strip=True)
-          
-              return None
-          
-          stats = {
-              "rank": get_stat("Rank"),
-              "completed_rooms": get_stat("Completed rooms"),
-              "level": get_stat("Level"),
-          }
-          
-          print("Extracted stats:", stats)
-          
-          os.makedirs("public", exist_ok=True)
-          with open("public/thm-stats.json", "w") as f:
-              json.dump(stats, f, indent=2)
+          except requests.RequestException as error:
+              print("Request failed:", error)
 
           PY

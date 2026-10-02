@@ -22,46 +22,54 @@ jobs:
         run: |
           python -m pip install requests beautifulsoup4
           python - <<'PY'
+          
+          import json
+          import os
           import requests
           from bs4 import BeautifulSoup
-
+          
+          # Use the HTML captured from the public profile.
+          # The live request may still return HTTP 429.
           url = "https://tryhackme.com/p/sohan34"
+          
           response = requests.get(
               url,
               headers={"User-Agent": "Mozilla/5.0"},
               timeout=30,
           )
-
-          print("HTTP status:", response.status_code)
-          print("Final URL:", response.url)
-          print("Content type:",
-                response.headers.get("content-type"))
           response.raise_for_status()
-
+          
           soup = BeautifulSoup(response.text, "html.parser")
-          print("Page title:",
-                soup.title.get_text(" ", strip=True)
-                if soup.title else "(no title)")
+          
+          def get_stat(label):
+              for box in soup.select('[class*="StyledStatisticBox"]'):
+                  label_el = box.select_one(
+                      '[class*="StyledStatisticsBoxText"]'
+                  )
+                  value_el = box.select_one(
+                      '[class*="StyledStatisticsBoxNumber"]'
+                  )
+          
+                  if (
+                      label_el
+                      and value_el
+                      and label_el.get_text(" ", strip=True).lower()
+                          == label.lower()
+                  ):
+                      return value_el.get_text(" ", strip=True)
+          
+              return None
+          
+          stats = {
+              "rank": get_stat("Rank"),
+              "completed_rooms": get_stat("Completed rooms"),
+              "level": get_stat("Level"),
+          }
+          
+          print("Extracted stats:", stats)
+          
+          os.makedirs("public", exist_ok=True)
+          with open("public/thm-stats.json", "w") as f:
+              json.dump(stats, f, indent=2)
 
-          text = " ".join(soup.stripped_strings)
-          for keyword in [
-              "rank", "level", "room", "completed",
-              "solved", "points", "sohan34"
-          ]:
-              start = 0
-              found = False
-              while True:
-                  index = text.lower().find(keyword, start)
-                  if index < 0:
-                      break
-                  print(f"\n[{keyword}]",
-                        text[max(0, index - 100):index + 220])
-                  found = True
-                  start = index + len(keyword)
-                  if start and text.lower().count(keyword) > 3:
-                      break
-              if not found:
-                  print(f"\n[{keyword}] Not found in page text")
-
-          print("\nHTML length:", len(response.text))
           PY

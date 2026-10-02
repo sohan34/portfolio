@@ -11,7 +11,7 @@
     style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;
     font-src https://fonts.gstatic.com;
     img-src 'self' data: https:;
-    connect-src https://api.github.com https://alfa-leetcode-api.onrender.com https://github-contributions-api.jogruber.de;
+    connect-src 'self' https://api.github.com https://github-contributions-api.jogruber.de;
     object-src 'none';
     frame-ancestors 'none';
     base-uri 'self';
@@ -174,25 +174,27 @@
     <p class="platform-label">TryHackMe</p>
 
     <div class="thm-stats">
-      <div class="thm-stat">
-        <span class="thm-stat-value">21</span>
-        <span class="thm-stat-label">Rooms Completed</span>
-      </div>
+      
+<div class="thm-stat">
+  <span class="thm-stat-value" id="thm-rooms">--</span>
+  <span class="thm-stat-label">Rooms Completed</span>
+</div>
 
-      <div class="thm-stat">
-        <span class="thm-stat-value">Top 25%</span>
-        <span class="thm-stat-label">Rank</span>
-      </div>
+<div class="thm-stat">
+  <span class="thm-stat-value" id="thm-rank">--</span>
+  <span class="thm-stat-label">Rank</span>
+</div>
 
-      <div class="thm-stat">
-        <span class="thm-stat-value">Hidden</span>
-        <span class="thm-stat-label">Exact Rank</span>
-      </div>
+<div class="thm-stat">
+  <span class="thm-stat-value" id="thm-actualrank">--</span>
+  <span class="thm-stat-label">Exact Rank</span>
+</div>
 
-      <div class="thm-stat">
-        <span class="thm-stat-value">4</span>
-        <span class="thm-stat-label">Badges</span>
-      </div>
+<div class="thm-stat">
+  <span class="thm-stat-value" id="thm-badges">--</span>
+  <span class="thm-stat-label">Badges</span>
+</div>
+
 
 
 

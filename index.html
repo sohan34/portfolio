@@ -9,9 +9,12 @@
     default-src 'self';
     script-src 'self' https://cdnjs.cloudflare.com;
     style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;
-    font-src https://fonts.gstatic.com;
-    img-src 'self' data:;
-    connect-src 'none';
+    font-src https://fonts.gstatic.com;    
+    connect-src 'self'
+      https://leetcode-stats.tashif.codes
+      https://gfg-stats.tashif.codes;
+    img-src 'self' data:
+      https://ghchart.rshah.org;
     object-src 'none';
     frame-ancestors 'none';
     base-uri 'self';

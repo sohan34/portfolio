@@ -1,111 +1,85 @@
 
 import json
-import os
 import urllib.request
 from pathlib import Path
 
-username = os.environ.get("LEETCODE_USERNAME", "sohan34")
-stats_file = Path("stats.json")
+USERNAME = "sohan_34"
+API_URL = f"https://alfa-leetcode-api.onrender.com/{USERNAME}/solved"
+STATS_FILE = Path("stats.json")
 
-query = """
-query userStats($username: String!) {
-  matchedUser(username: $username) {
-    submitStats: submitStatsGlobal {
-      acSubmissionNum {
-        difficulty
-        count
-      }
-    }
-  }
-}
-"""
 
-payload = json.dumps({
-    "query": query,
-    "variables": {"username": username}
-}).encode("utf-8")
+def valid_count(value, field):
+    # Reject missing values, booleans, strings, negatives, and invalid data.
+    if type(value) is not int or value < 0:
+        raise ValueError(f"Invalid {field}: {value!r}")
+    return value
 
+
+# Fetch using the SAME API and field names as the working JavaScript.
 request = urllib.request.Request(
-    "https://leetcode.com/graphql/",
-    data=payload,
-    headers={
-        "Content-Type": "application/json",
-        "User-Agent": "Mozilla/5.0",
-        "Referer": f"https://leetcode.com/u/{username}/"
-    },
-    method="POST"
+    API_URL,
+    headers={"User-Agent": "Mozilla/5.0"}
 )
 
-# Any request or parsing failure stops the workflow before stats.json is changed.
-with urllib.request.urlopen(request, timeout=30) as response:
-    result = json.load(response)
+with urllib.request.urlopen(request, timeout=45) as response:
+    if response.status != 200:
+        raise RuntimeError(f"LeetCode API returned HTTP {response.status}")
+    data = json.load(response)
 
-if result.get("errors"):
-    raise RuntimeError(f"LeetCode GraphQL errors: {result['errors']}")
+if not isinstance(data, dict):
+    raise RuntimeError("Unexpected API response. stats.json was not changed.")
 
-user = (result.get("data") or {}).get("matchedUser")
-if not user:
-    raise RuntimeError(
-        "LeetCode returned no matched user. Existing stats were not changed."
-    )
-
-submission_data = (user.get("submitStats") or {}).get("acSubmissionNum")
-if not isinstance(submission_data, list) or not submission_data:
-    raise RuntimeError(
-        "LeetCode returned missing or empty submission stats. "
-        "Existing stats were not changed."
-    )
-
-counts = {}
-for item in submission_data:
-    difficulty = item.get("difficulty")
-    count = item.get("count")
-
-    if difficulty in ("All", "Easy", "Medium", "Hard"):
-        if isinstance(count, bool) or not isinstance(count, int) or count < 0:
-            raise RuntimeError(
-                f"Invalid count for {difficulty}: {count!r}. "
-                "Existing stats were not changed."
-            )
-        counts[difficulty] = count
-
-required = ("All", "Easy", "Medium", "Hard")
-missing = [key for key in required if key not in counts]
+# Require all three difficulty fields instead of silently defaulting to zero.
+required_fields = ("easySolved", "mediumSolved", "hardSolved")
+missing = [key for key in required_fields if key not in data]
 if missing:
     raise RuntimeError(
-        f"LeetCode response is incomplete; missing {missing}. "
-        "Existing stats were not changed."
+        f"API response is missing {missing}. Existing stats were preserved."
     )
 
-if counts["All"] != counts["Easy"] + counts["Medium"] + counts["Hard"]:
+easy = valid_count(data["easySolved"], "easySolved")
+medium = valid_count(data["mediumSolved"], "mediumSolved")
+hard = valid_count(data["hardSolved"], "hardSolved")
+
+total = data.get("solvedProblem")
+if total is None:
+    total = easy + medium + hard
+else:
+    total = valid_count(total, "solvedProblem")
+
+# Never accept an all-zero response from this endpoint.
+if total == 0 or easy + medium + hard == 0:
     raise RuntimeError(
-        "LeetCode counts failed the consistency check. "
-        "Existing stats were not changed."
+        "API returned zero solved problems. Refusing to overwrite saved stats."
     )
 
-# Read and validate the existing file before changing any values.
-stats = json.loads(stats_file.read_text(encoding="utf-8"))
-if not isinstance(stats, dict):
-    raise RuntimeError("stats.json must contain a JSON object.")
+# Read the existing file before making any changes.
+stats = json.loads(STATS_FILE.read_text(encoding="utf-8"))
+if not isinstance(stats, dict) or not isinstance(stats.get("leetcode"), dict):
+    raise RuntimeError("Invalid stats.json structure. Existing file was preserved.")
 
-leetcode = stats.get("leetcode")
-if not isinstance(leetcode, dict):
+# Additional protection against unexpected drops to zero or lower totals.
+old = stats["leetcode"]
+old_total = old.get("solved", 0)
+
+if type(old_total) is int and old_total > 0 and total < old_total:
     raise RuntimeError(
-        "stats.json has no valid leetcode object. Existing file was not changed."
+        f"API total ({total}) is below saved total ({old_total}). "
+        "Refusing to overwrite existing stats."
     )
 
-# Preserve TryHackMe and all other fields.
-leetcode.update({
-    "solved": counts["All"],
-    "easy": counts["Easy"],
-    "medium": counts["Medium"],
-    "hard": counts["Hard"]
+# Change ONLY LeetCode count fields. Keep TryHackMe and other data unchanged.
+stats["leetcode"].update({
+    "solved": total,
+    "easy": easy,
+    "medium": medium,
+    "hard": hard
 })
 
-stats_file.write_text(
+STATS_FILE.write_text(
     json.dumps(stats, indent=2) + "\n",
     encoding="utf-8"
 )
 
-print(f"LeetCode stats successfully updated for {username}:")
-print(json.dumps(leetcode, indent=2))
+print("LeetCode stats updated successfully:")
+print(json.dumps(stats["leetcode"], indent=2))

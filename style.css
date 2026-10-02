@@ -414,6 +414,207 @@ section h2 {
   letter-spacing: 1px;
 }
 
+/* CODING ACTIVITY (Live Stats) */
+.stat-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 30px;
+  margin-top: 20px;
+}
+
+.stat-card {
+  padding: 30px 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.4s ease, border-color 0.4s ease, box-shadow 0.4s ease;
+  overflow: hidden;
+  text-align: center;
+  min-height: 260px;
+}
+
+.stat-card:hover {
+  transform: translateY(-8px) scale(1.02);
+  border-color: var(--primary);
+  box-shadow: 0 10px 40px rgba(67, 206, 162, 0.2);
+  z-index: 1;
+}
+
+.live-card {
+  flex-direction: column;
+}
+
+.live-data {
+  text-align: center;
+  width: 100%;
+}
+
+/* Platform label (LeetCode / GitHub / TryHackMe) */
+.platform-label {
+  color: var(--primary);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  margin-bottom: 16px;
+}
+
+/* Big number (GitHub repos) */
+.big-stat {
+  font-size: 3.5rem;
+  font-family: 'JetBrains Mono', monospace;
+  font-weight: 800;
+  margin: 0 0 4px;
+}
+
+.stat-desc {
+  color: var(--text-dim);
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-bottom: 20px;
+}
+
+/* GitHub mini row */
+.gh-row {
+  display: flex;
+  justify-content: center;
+  gap: 24px;
+  border-top: 1px solid var(--glass-border);
+  padding-top: 16px;
+}
+
+.gh-mini {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+}
+
+.gh-val {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 1.4rem;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.gh-key {
+  font-size: 0.75rem;
+  color: var(--text-dim);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* LeetCode donut wheel */
+.lc-wheel-wrap {
+  margin: 6px auto 14px;
+  width: 140px;
+  height: 140px;
+}
+
+.lc-donut {
+  width: 100%;
+  height: 100%;
+  transform: rotate(-90deg);
+}
+
+.donut-bg {
+  fill: none;
+  stroke: rgba(255, 255, 255, 0.06);
+  stroke-width: 12;
+}
+
+.donut-easy,
+.donut-medium,
+.donut-hard {
+  fill: none;
+  stroke-width: 12;
+  stroke-linecap: round;
+  transition: stroke-dashoffset 1.2s ease;
+}
+
+.donut-easy {
+  stroke: #43cea2;
+}
+
+.donut-medium {
+  stroke: #f5a623;
+}
+
+.donut-hard {
+  stroke: #e74c3c;
+}
+
+/* Center text inside donut (needs rotate back) */
+.donut-total {
+  font-size: 22px;
+  fill: var(--text);
+  font-family: 'JetBrains Mono', monospace;
+  font-weight: 700;
+  text-anchor: middle;
+  transform: rotate(90deg);
+  transform-origin: 60px 60px;
+}
+
+.donut-sub {
+  font-size: 9px;
+  fill: var(--text-dim);
+  text-anchor: middle;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  transform: rotate(90deg);
+  transform-origin: 60px 60px;
+}
+
+/* LeetCode legend */
+.lc-legend {
+  display: flex;
+  justify-content: center;
+  gap: 14px;
+}
+
+.leg {
+  font-size: 0.78rem;
+  color: var(--text-dim);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+}
+
+.leg strong {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 1rem;
+}
+
+.leg.easy strong {
+  color: #43cea2;
+}
+
+.leg.medium strong {
+  color: #f5a623;
+}
+
+.leg.hard strong {
+  color: #e74c3c;
+}
+
+/* TryHackMe badge */
+.thm-badge-wrap {
+  margin-top: 6px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.thm-badge-wrap img {
+  max-width: 260px;
+  width: 100%;
+  border-radius: 8px;
+  filter: brightness(1.05) contrast(1.05);
+}
+
+
 /* SKILLS - FLIP CARDS */
 .skills-category {
   margin-bottom: 40px;
@@ -802,7 +1003,9 @@ body.hovering .cursor-dot {
   .cursor-circle {
     display: none !important;
   }
-}/* RESUME MODAL */
+}
+
+/* RESUME MODAL */
 .modal-overlay {
   position: fixed;
   top: 0;
@@ -870,64 +1073,47 @@ body.hovering .cursor-dot {
 }
 
 
-/* Coding & Cybersecurity Activity */
-.activity-section {
-  width: min(100% - 40px, 1100px);
-  margin: 70px auto;
+.thm-card {
+  text-decoration: none;
+  display: block;
 }
 
-.activity-section .section-heading {
-  margin-bottom: 28px;
-}
-
-.activity-section .section-heading h2 {
-  font-size: clamp(1.8rem, 4vw, 2.5rem);
-  margin: 10px 0;
-}
-
-.activity-section .section-heading p {
-  line-height: 1.7;
-}
-
-.activity-grid {
+.thm-stats {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 18px;
+  gap: 12px;
+  margin-top: 16px;
 }
 
-.activity-card {
+.thm-stat {
+  padding: 14px 8px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.03);
+  text-align: center;
+}
+
+.thm-stat-value {
   display: block;
-  padding: 24px;
-  border: 1px solid var(--border-color, #444);
-  border-radius: 14px;
-  color: inherit;
-  text-decoration: none;
-  background: var(--card-bg, transparent);
-  transition: transform 0.2s ease, border-color 0.2s ease;
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--text-color, #fff);
 }
 
-.activity-card:hover {
-  transform: translateY(-4px);
-  border-color: var(--accent-color, #8b5cf6);
+.thm-stat-label {
+  display: block;
+  margin-top: 6px;
+  font-size: 0.75rem;
+  color: var(--text-dim, #aaa);
 }
 
-.activity-card h3 {
-  margin: 0 0 12px;
+.thm-profile-link {
+  margin-top: 16px;
+  font-size: 0.85rem;
+  color: var(--text-dim, #aaa);
+  text-align: center;
 }
 
-.activity-card p {
-  line-height: 1.6;
-  opacity: 0.8;
-}
-
-.activity-card span {
-  display: inline-block;
-  margin-top: 10px;
-  color: var(--accent-color, #8b5cf6);
-}
-
-@media (max-width: 600px) {
-  .activity-grid {
-    grid-template-columns: 1fr;
-  }
+.thm-card:hover .thm-profile-link {
+  color: var(--accent-color, #7c5cff);
 }

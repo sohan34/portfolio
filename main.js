@@ -350,130 +350,151 @@ document.addEventListener("keydown", (e) => {
    ========================================= */
 
 // TryHackMe image fallback (replaces removed inline onerror)
-(function setupTHMFallback() {
-  const img = document.getElementById("thm-badge-img");
-  const fallback = document.getElementById("thm-fallback");
-  if (!img || !fallback) return;
-  img.addEventListener("error", () => {
-    img.style.display = "none";
-    fallback.style.display = "flex";
-  });
-})();
 
-// Fetch with retry on 429
-async function fetchWithRetry(url, retries = 2, delayMs = 4000) {
-  for (let i = 0; i <= retries; i++) {
-    const res = await fetch(url);
-    if (res.status === 429 && i < retries) {
-      await new Promise(r => setTimeout(r, delayMs));
-      continue;
-    }
-    return res;
+/* =========================================
+   SAVED PLATFORM STATS + LIVE GITHUB STATS
+   ========================================= */
+
+// Animate the LeetCode donut arcs.
+function animateLeetCodeDonut(easy, medium, hard) {
+  const CIRC = 2 * Math.PI * 50;
+  const LC_TOTAL = 3600;
+
+  function setArc(id, fraction, startAngleDeg) {
+    const el = document.getElementById(id);
+    if (!el) return;
+
+    const dash = Math.max(fraction * CIRC, 0);
+    const offset = -(startAngleDeg / 360) * CIRC;
+
+    el.style.strokeDasharray = `${dash} ${CIRC}`;
+    el.style.strokeDashoffset = `${offset}`;
   }
+
+  // Reset first so the CSS transition animates the arcs.
+  ["lc-easy-arc", "lc-medium-arc", "lc-hard-arc"].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) {
+      el.style.strokeDasharray = `0 ${CIRC}`;
+      el.style.strokeDashoffset = "0";
+    }
+  });
+
+  requestAnimationFrame(() => {
+    setArc("lc-easy-arc", easy / LC_TOTAL, 0);
+    setArc("lc-medium-arc", medium / LC_TOTAL, 60);
+    setArc("lc-hard-arc", hard / LC_TOTAL, 120);
+  });
 }
 
-(async function fetchLiveStats() {
-
-  // --- LeetCode (with retry) ---
+// Load LeetCode and TryHackMe from our saved JSON.
+async function loadSavedStats() {
   try {
-    const res = await fetchWithRetry("https://alfa-leetcode-api.onrender.com/sohan_34/solved");
-    if (!res || !res.ok) throw new Error("LC API " + res?.status);
-    const d = await res.json();
-    const easy = d.easySolved ?? 0;
-    const medium = d.mediumSolved ?? 0;
-    const hard = d.hardSolved ?? 0;
-    const total = d.solvedProblem ?? (easy + medium + hard);
-
-    countUp(document.getElementById("lc-easy"), easy, 1000);
-    countUp(document.getElementById("lc-medium"), medium, 1000);
-    countUp(document.getElementById("lc-hard"), hard, 1000);
-    countUp(document.getElementById("lc-total"), total, 1200);
-
-    // Donut wheel animation
-    const CIRC = 2 * Math.PI * 50; // r=50 → ~314.16
-    const LC_TOTAL = 3600;
-    const easyFrac = easy / LC_TOTAL;
-    const medFrac = medium / LC_TOTAL;
-    const hardFrac = hard / LC_TOTAL;
-
-    
-function setArc(id, fraction, startAngleDeg) {
-  const el = document.getElementById(id);
-  if (!el) return;
-
-  const dash = Math.max(fraction * CIRC, 0);
-  const offset = -(startAngleDeg / 360) * CIRC;
-
-  el.style.strokeDasharray = `${dash} ${CIRC}`;
-  el.style.strokeDashoffset = `${offset}`;
-}
-
-
-    // Reset all to 0 stroke first
-    ["lc-easy-arc", "lc-medium-arc", "lc-hard-arc"].forEach(id => {
-      const el = document.getElementById(id);
-      if (el) { el.style.strokeDasharray = `0 ${CIRC}`; el.style.strokeDashoffset = "0"; }
+    const response = await fetch("./stats.json", {
+      cache: "no-store"
     });
 
-    // Draw after one frame to trigger CSS transition
-    
-requestAnimationFrame(() => {
-  setArc("lc-easy-arc", easyFrac, 0);
-  setArc("lc-medium-arc", medFrac, 60);
-  setArc("lc-hard-arc", hardFrac, 120);
-});
+    if (!response.ok) {
+      throw new Error(`stats.json request failed: ${response.status}`);
+    }
 
+    const stats = await response.json();
 
-  } catch (e) {
-    console.warn("LeetCode stats unavailable:", e.message);
-    // Show dashes (keep -- defaults visible, just shrink loading text)
-    const t = document.getElementById("lc-total");
-    if (t) t.textContent = "--";
+    // --- LeetCode ---
+    const lc = stats.leetcode;
+
+    if (lc) {
+      const easy = Number(lc.easy) || 0;
+      const medium = Number(lc.medium) || 0;
+      const hard = Number(lc.hard) || 0;
+      const total = Number(lc.solved) || easy + medium + hard;
+
+      countUp(document.getElementById("lc-easy"), easy, 1000);
+      countUp(document.getElementById("lc-medium"), medium, 1000);
+      countUp(document.getElementById("lc-hard"), hard, 1000);
+      countUp(document.getElementById("lc-total"), total, 1200);
+
+      animateLeetCodeDonut(easy, medium, hard);
+    }
+
+    // --- TryHackMe ---
+    const thm = stats.tryhackme;
+
+    if (thm) {
+      const rooms = document.getElementById("thm-rooms");
+      const rank = document.getElementById("thm-rank");
+      const actualRank = document.getElementById("thm-actualrank");
+      const badges = document.getElementById("thm-badges");
+
+      if (rooms) countUp(rooms, Number(thm.rooms) || 0, 1000);
+      if (rank) rank.textContent = thm.rank ?? "--";
+      if (actualRank) actualRank.textContent = thm.actualrank ?? "--";
+      if (badges) countUp(badges, Number(thm.badges) || 0, 1000);
+    }
+
+  } catch (error) {
+    console.warn("Could not load saved stats:", error);
   }
-
-  // --- GitHub ---
-  try {
-    const res = await fetch("https://api.github.com/users/sohan34");
-    if (!res.ok) throw new Error("GH " + res.status);
-    const d = await res.json();
-    
-countUp(document.getElementById("gh-repos"), d.public_repos ?? 0, 900);
-
-try {
-  const response = await fetch(
-    "https://github-contributions-api.jogruber.de/v4/sohan34?y=last"
-  );
-
-  if (!response.ok) {
-    throw new Error(`Contributions API: ${response.status}`);
-  }
-
-  const data = await response.json();
-  const total =
-    data.total?.lastYear ??
-    data.contributions?.reduce(
-      (sum, day) => sum + (Number(day.count) || 0),
-      0
-    );
-
-  if (total == null) throw new Error("Contribution total unavailable");
-
-  countUp(
-    document.getElementById("gh-contributions"),
-    total,
-    900
-  );
-} catch (error) {
-  console.warn("GitHub contributions unavailable:", error);
-  const el = document.getElementById("gh-contributions");
-  if (el) el.textContent = "--";
 }
 
-  } catch (e) {
-    console.warn("GitHub stats unavailable:", e.message);
+// GitHub remains live, using your existing animation.
+async function loadGitHubStats() {
+  try {
+    const response = await fetch("https://api.github.com/users/sohan34");
+
+    if (!response.ok) {
+      throw new Error(`GitHub API: ${response.status}`);
+    }
+
+    const data = await response.json();
+
+    countUp(
+      document.getElementById("gh-repos"),
+      Number(data.public_repos) || 0,
+      900
+    );
+  } catch (error) {
+    console.warn("GitHub stats unavailable:", error);
   }
 
-})();
+  try {
+    const response = await fetch(
+      "https://github-contributions-api.jogruber.de/v4/sohan34?y=last"
+    );
+
+    if (!response.ok) {
+      throw new Error(`Contributions API: ${response.status}`);
+    }
+
+    const data = await response.json();
+
+    const total =
+      data.total?.lastYear ??
+      data.contributions?.reduce(
+        (sum, day) => sum + (Number(day.count) || 0),
+        0
+      );
+
+    if (total == null) {
+      throw new Error("Contribution total unavailable");
+    }
+
+    countUp(
+      document.getElementById("gh-contributions"),
+      Number(total),
+      900
+    );
+  } catch (error) {
+    console.warn("GitHub contributions unavailable:", error);
+    const el = document.getElementById("gh-contributions");
+    if (el) el.textContent = "--";
+  }
+}
+
+// Start both tasks independently.
+loadSavedStats();
+loadGitHubStats();
+
 
 function countUp(el, end, duration) {
   if (!el || end === 0) { if (el) el.textContent = "0"; return; }

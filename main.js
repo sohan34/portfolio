@@ -344,3 +344,90 @@ document.addEventListener("keydown", (e) => {
     closeResumeModal();
   }
 });
+
+
+async function loadProfileStats() {
+  const profiles = [
+    {
+      url: "https://leetcode-stats.tashif.codes/sohan_34",
+      totalId: "leetcode-total",
+      breakdownId: "leetcode-breakdown",
+      platform: "LeetCode"
+    },
+    {
+      url: "https://gfg-stats.tashif.codes/sohanchavan34",
+      totalId: "gfg-total",
+      breakdownId: "gfg-score",
+      platform: "GFG"
+    }
+  ];
+
+  for (const profile of profiles) {
+    const total = document.getElementById(profile.totalId);
+    const extra = document.getElementById(profile.breakdownId);
+
+    try {
+      const response = await fetch(profile.url);
+
+      if (!response.ok) {
+        throw new Error("Profile service unavailable");
+      }
+
+      const result = await response.json();
+      const data = result.data ?? result;
+
+      if (profile.platform === "LeetCode") {
+        const solved =
+          data.totalSolved ??
+          data.submitStats?.acSubmissionNum?.find(
+            item => item.difficulty === "All"
+          )?.count;
+
+        if (solved == null) throw new Error("Missing stats");
+
+        total.textContent = `${solved} problems solved`;
+
+        if (extra) {
+          const easy = data.easySolved ??
+            data.submitStats?.acSubmissionNum?.find(
+              item => item.difficulty === "Easy"
+            )?.count;
+          const medium = data.mediumSolved ??
+            data.submitStats?.acSubmissionNum?.find(
+              item => item.difficulty === "Medium"
+            )?.count;
+          const hard = data.hardSolved ??
+            data.submitStats?.acSubmissionNum?.find(
+              item => item.difficulty === "Hard"
+            )?.count;
+
+          extra.textContent =
+            [easy, medium, hard].every(n => n != null)
+              ? `Easy ${easy} · Medium ${medium} · Hard ${hard}`
+              : "Difficulty breakdown unavailable";
+        }
+      } else {
+        const solved = data.totalSolved;
+
+        if (solved == null) throw new Error("Missing stats");
+
+        total.textContent = `${solved} problems solved`;
+
+        if (extra) {
+          extra.textContent = data.currentRating != null
+            ? `Coding rating: ${data.currentRating}`
+            : data.score != null
+              ? `Coding score: ${data.score}`
+              : "More stats on profile";
+        }
+      }
+    } catch (error) {
+      total.textContent = "Stats temporarily unavailable";
+      if (extra) extra.textContent = "View the profile for current data.";
+      console.warn(`${profile.platform} stats:`, error);
+    }
+  }
+}
+
+loadProfileStats();
+

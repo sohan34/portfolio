@@ -382,8 +382,8 @@ function animateLeetCodeDonut(easy, medium, hard) {
 
   requestAnimationFrame(() => {
     setArc("lc-easy-arc", easy / LC_TOTAL, 0);
-    setArc("lc-medium-arc", medium / LC_TOTAL, 60);
-    setArc("lc-hard-arc", hard / LC_TOTAL, 120);
+    setArc("lc-medium-arc", medium / LC_TOTAL, 120);
+    setArc("lc-hard-arc", hard / LC_TOTAL, 240);
   });
 }
 

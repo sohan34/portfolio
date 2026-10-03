@@ -3,7 +3,7 @@ name: Update LeetCode Stats
 
 on:
   schedule:
-    - cron: "17 */3 * * *"
+    - cron: "47 * * * *"
   workflow_dispatch:
 
 permissions:

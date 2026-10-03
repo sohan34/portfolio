@@ -1,9 +1,9 @@
 {
   "leetcode": {
-    "solved": 23,
+    "solved": 25,
     "easy": 15,
-    "medium": 7,
-    "hard": 1
+    "medium": 8,
+    "hard": 2
   },
   "tryhackme": {
     "rooms": 21,
